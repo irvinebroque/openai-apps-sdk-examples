@@ -1,3 +1,4 @@
+import { httpServerHandler } from 'cloudflare:node';
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { URL } from "node:url";
 
@@ -296,9 +297,6 @@ async function handlePostMessage(
   }
 }
 
-const portEnv = Number(process.env.PORT ?? 8000);
-const port = Number.isFinite(portEnv) ? portEnv : 8000;
-
 const httpServer = createServer(async (req: IncomingMessage, res: ServerResponse) => {
   if (!req.url) {
     res.writeHead(400).end("Missing URL");
@@ -335,8 +333,8 @@ httpServer.on("clientError", (err: Error, socket) => {
   socket.end("HTTP/1.1 400 Bad Request\r\n\r\n");
 });
 
-httpServer.listen(port, () => {
-  console.log(`Pizzaz MCP server listening on http://localhost:${port}`);
-  console.log(`  SSE stream: GET http://localhost:${port}${ssePath}`);
-  console.log(`  Message post endpoint: POST http://localhost:${port}${postPath}?sessionId=...`);
-});
+// Listen on port 8080 (the port doesn't matter much for Workers)
+httpServer.listen(8080);
+
+// Export the Worker handler using Cloudflare's httpServerHandler
+export default httpServerHandler({ port: 8080 });
